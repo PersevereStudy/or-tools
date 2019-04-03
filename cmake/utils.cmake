@@ -61,3 +61,30 @@ function(check_target my_target)
     CMake target in your project, see CMake/README.md for more details")
   endif(NOT TARGET ${my_target})
 endfunction()
+
+function(build_dependency NAME)
+  message(STATUS "Building ${NAME}: ...")
+
+  configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/${NAME}.CMakeLists.txt
+    ${CMAKE_CURRENT_BINARY_DIR}/${NAME}/CMakeLists.txt)
+
+  execute_process(
+    COMMAND ${CMAKE_COMMAND} -H. -Bproject_build -G "${CMAKE_GENERATOR}"
+    RESULT_VARIABLE result
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${NAME})
+  if(result)
+    message(FATAL_ERROR "CMake step for ${NAME} failed: ${result}")
+  endif()
+
+  execute_process(
+    COMMAND ${CMAKE_COMMAND} --build project_build
+    RESULT_VARIABLE result
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${NAME})
+  if(result)
+    message(FATAL_ERROR "Build step for ${NAME} failed: ${result}")
+  endif()
+
+  message(STATUS "Building ${NAME}: ...DONE")
+endfunction()
+
